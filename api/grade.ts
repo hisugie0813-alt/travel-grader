@@ -1,42 +1,54 @@
 import { GoogleGenAI } from "@google/generative-ai";
 
 export default async function handler(req: any, res: any) {
+  // 1. POST 요청인지 확인
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
+
   try {
-    // 1. API 키 확인
-    const key = process.env.GEMINI_API_KEY;
-    if (!key) {
-      return res.status(500).json({ error: "Vercel 설정에서 GEMINI_API_KEY를 찾을 수 없습니다." });
+    // 2. API 키 확인
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      return res.status(500).json({ error: "Vercel 설정에 GEMINI_API_KEY가 없습니다. Settings 메뉴를 확인해 주세요." });
     }
 
-    if (req.method !== 'POST') {
-      return res.status(405).json({ error: "POST 요청만 허용됩니다." });
-    }
-
+    // 3. 입력 내용 확인
     const { text } = req.body;
     if (!text) {
-      return res.status(400).json({ error: "기행문 내용이 없습니다." });
+      return res.status(400).json({ error: "채점할 내용이 입력되지 않았습니다." });
     }
 
-    // 2. AI 모델 설정
-    const genAI = new GoogleGenAI(key);
+    // 4. AI 실행 (가장 빠른 gemini-1.5-flash 모델 사용)
+    const genAI = new GoogleGenAI(apiKey);
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-    const prompt = `당신은 초등학생 기행문 채점 전문가입니다. 다음 기행문을 10가지 기준에 따라 채점하고 반드시 순수한 JSON 형식으로만 응답하세요. 마크다운 기호(\`\`\`)는 쓰지 마세요.
-    응답 형식: { "totalScore": 숫자, "criteria": [...], "overallFeedback": "문자열", "howToGet95": "문자열" }
+    const prompt = `당신은 초등학생 기행문 채점 전문가입니다. 다음 기행문을 10가지 기준에 따라 채점하고 JSON으로 응답하세요. 마크다운 기호 없이 순수 JSON만 보내주세요.
+    {
+      "totalScore": 0,
+      "criteria": [
+        {"id": 1, "title": "기준명", "maxScore": 5, "score": 0, "reason": "이유"}
+      ],
+      "overallFeedback": "총평",
+      "howToGet95": "개선방안"
+    }
     
-    [학생 글]
-    ${text}`;
+    [학생 글]: ${text}`;
 
-    // 3. AI 실행
     const result = await model.generateContent(prompt);
-    const responseText = result.response.text();
+    const response = await result.response;
+    const responseText = response.text();
     
-    // AI 응답에서 JSON만 추출 (혹시 모를 마크다운 제거)
-    const jsonContent = responseText.replace(/```json|```/g, "").trim();
+    // AI 응답에서 JSON만 깔끔하게 추출
+    const cleanJson = responseText.replace(/```json/g, "").replace(/```/g, "").trim();
     
-    res.status(200).json(JSON.parse(jsonContent));
+    return res.status(200).json(JSON.parse(cleanJson));
+
   } catch (error: any) {
-    console.error(error);
-    res.status(500).json({ error: error.message || "알 수 없는 서버 오류가 발생했습니다." });
+    console.error("Server Error:", error);
+    return res.status(500).json({ 
+      error: "AI 채점 중 오류가 발생했습니다.", 
+      details: error.message 
+    });
   }
 }
