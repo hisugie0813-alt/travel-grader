@@ -1,0 +1,35 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", "Helvetica Neue", Arial, sans-serif;
+  --color-background: #f4f7f6;
+  --color-foreground: #2d3436;
+  --color-primary: #0984e3;
+  --color-card: #ffffff;
+  --color-border: #dfe6e9;
+  --color-success: #00b894;
+  --color-danger: #d63031;
+  --color-tip-bg: #e1f5fe;
+  --color-tip-border: #03a9f4;
+  --color-tip-text: #01579b;
+}
+
+.minimal-card {
+  @apply bg-white rounded-[12px] shadow-[0_2px_10px_rgba(0,0,0,0.05)];
+}
+
+.criteria-card-minimal {
+  @apply bg-white rounded-[10px] p-4 shadow-[0_2px_5px_rgba(0,0,0,0.02)] border-l-4 border-stone-200;
+}
+
+.criteria-card-minimal.high { @apply border-l-success; }
+.criteria-card-minimal.low { @apply border-l-danger; }
+
+.score-circle-minimal {
+  @apply w-[140px] h-[140px] rounded-full border-[8px] border-primary flex flex-col justify-center items-center mb-5;
+}
+
+.upgrade-tip-minimal {
+  @apply bg-tip-bg rounded-[10px] p-5 border border-dashed border-tip-border;
+}
