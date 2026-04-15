@@ -1,3 +1,4 @@
+import React from 'react';
 import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { PenTool, Loader2, ClipboardCheck, Lightbulb, AlertCircle } from "lucide-react";
