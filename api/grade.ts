@@ -5,16 +5,18 @@ export default async function handler(req: any, res: any) {
 
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    return res.status(500).json({ error: "Vercel 설정에서 GEMINI_API_KEY를 확인해 주세요." });
+    return res.status(500).json({ error: "API 키가 설정되지 않았습니다." });
   }
 
   const { text } = req.body;
 
   try {
-    // 주소를 v1beta에서 v1으로 바꾸고, 모델명도 가장 확실한 것으로 변경했습니다.
+    // 1. 가장 안정적인 v1 주소를 사용합니다.
     const apiUrl = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
     
-    const prompt = `당신은 초등학생 기행문 채점 전문가입니다. 다음 기행문을 10가지 기준에 따라 채점하고 반드시 JSON 형식으로만 응답하세요.
+    const prompt = `당신은 초등학생 기행문 채점 전문가입니다. 다음 기행문을 10가지 기준에 따라 채점하고 반드시 JSON 형식으로만 응답하세요. 
+    다른 설명은 하지 말고 오직 { ... } 로 시작하는 JSON 데이터만 보내주세요.
+    
     응답 형식:
     {
       "totalScore": 0,
@@ -27,27 +29,30 @@ export default async function handler(req: any, res: any) {
     
     [학생 글]: ${text}`;
 
+    // 2. 에러를 일으키는 generationConfig 설정을 아예 삭제했습니다.
     const response = await fetch(apiUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { 
-          // JSON 형태로만 답하도록 강제하는 설정입니다.
-          responseMimeType: "application/json" 
-        }
+        contents: [{ parts: [{ text: prompt }] }]
       })
     });
 
     const data = await response.json();
     
     if (!response.ok) {
-      // 에러가 나면 구체적인 이유를 화면에 띄워줍니다.
       throw new Error(data.error?.message || "AI 서버 응답 오류");
     }
 
-    const aiResponse = data.candidates[0].content.parts[0].text;
-    return res.status(200).json(JSON.parse(aiResponse));
+    // 3. AI가 보낸 답변에서 JSON만 추출하는 튼튼한 코드입니다.
+    let aiResponse = data.candidates[0].content.parts[0].text;
+    
+    // 혹시 AI가 ```json ... ``` 같은 기호를 붙여도 다 지워버립니다.
+    const jsonStart = aiResponse.indexOf('{');
+    const jsonEnd = aiResponse.lastIndexOf('}') + 1;
+    const cleanJson = aiResponse.substring(jsonStart, jsonEnd);
+    
+    return res.status(200).json(JSON.parse(cleanJson));
 
   } catch (error: any) {
     return res.status(500).json({ error: error.message });
