@@ -1,35 +1,54 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-@theme {
-  --font-sans: "Inter", "Helvetica Neue", Arial, sans-serif;
-  --color-background: #f4f7f6;
-  --color-foreground: #2d3436;
-  --color-primary: #0984e3;
-  --color-card: #ffffff;
-  --color-border: #dfe6e9;
-  --color-success: #00b894;
-  --color-danger: #d63031;
-  --color-tip-bg: #e1f5fe;
-  --color-tip-border: #03a9f4;
-  --color-tip-text: #01579b;
+:root {
+  --background: #f4f7f6;
+  --foreground: #2d3436;
+  --primary: #0984e3;
+  --card: #ffffff;
+  --border: #dfe6e9;
+  --success: #00b894;
+  --danger: #d63031;
+  --tip-bg: #e1f5fe;
+  --tip-border: #03a9f4;
+  --tip-text: #01579b;
 }
 
+/* 디자인 요소들 */
 .minimal-card {
-  @apply bg-white rounded-[12px] shadow-[0_2px_10px_rgba(0,0,0,0.05)];
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
 }
 
 .criteria-card-minimal {
-  @apply bg-white rounded-[10px] p-4 shadow-[0_2px_5px_rgba(0,0,0,0.02)] border-l-4 border-stone-200;
+  background-color: white;
+  border-radius: 10px;
+  padding: 1rem;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+  border-left: 4px solid #dfe6e9;
 }
 
-.criteria-card-minimal.high { @apply border-l-success; }
-.criteria-card-minimal.low { @apply border-l-danger; }
+.criteria-card-minimal.high { border-left-color: #00b894; }
+.criteria-card-minimal.low { border-left-color: #d63031; }
 
 .score-circle-minimal {
-  @apply w-[140px] h-[140px] rounded-full border-[8px] border-primary flex flex-col justify-center items-center mb-5;
+  width: 140px;
+  height: 140px;
+  border-radius: 9999px;
+  border: 8px solid #0984e3;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 1.25rem;
 }
 
 .upgrade-tip-minimal {
-  @apply bg-tip-bg rounded-[10px] p-5 border border-dashed border-tip-border;
+  background-color: #e1f5fe;
+  border-radius: 10px;
+  padding: 1.25rem;
+  border: 1px dashed #03a9f4;
 }
